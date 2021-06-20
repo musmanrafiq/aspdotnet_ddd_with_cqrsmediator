@@ -1,0 +1,36 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Project.Data.IRepositories;
+using Project.Domain.Events;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
+namespace Project.Service.Subcribers
+{
+    public class ProjectCreatedHandler : INotificationHandler<ProjectCreatedEvent>
+    {
+        private readonly IProjectRepository _ProjectRepository;
+        private readonly ILogger _logger;
+
+        public ProjectCreatedHandler(IProjectRepository ProjectRepository, ILogger<ProjectCreatedHandler> logger)
+        {
+            _ProjectRepository = ProjectRepository ?? throw new ArgumentNullException(nameof(ProjectRepository));
+            _logger = logger;
+        }
+
+        public async Task Handle(ProjectCreatedEvent notification, CancellationToken cancellationToken)
+        {
+            var Project = await _ProjectRepository.GetAsync(e => e.Id == notification.ProjectId);
+
+            if (Project == null)
+            {
+                _logger.LogWarning("Project is not found by Project id from publisher");
+            }
+            else
+            {
+                _logger.LogInformation($"Project has found by Project id: {notification.ProjectId} from publisher");
+            }
+        }
+    }
+}
